@@ -2,12 +2,11 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { StartCta } from "@/components/start-cta";
 import { LocalEvents } from "@/components/local-events";
-import { parseInterests } from "@/lib/profile";
 
 export default async function Home() {
   const session = await auth();
 
-  const [events, suggestions, me] = await Promise.all([
+  const [events, suggestions] = await Promise.all([
     prisma.event.findMany({
       where: { date: { gte: new Date() } },
       include: {
@@ -22,15 +21,7 @@ export default async function Home() {
       orderBy: { date: "asc" },
       take: 9,
     }),
-    session?.user?.id
-      ? prisma.user.findUnique({
-          where: { id: session.user.id },
-          select: { interests: true },
-        })
-      : null,
   ]);
-
-  const myInterests = parseInterests(me?.interests ?? null);
 
   return (
     <div className="mx-auto flex max-w-5xl flex-1 flex-col items-center gap-16 px-4 py-16 text-center">
@@ -78,7 +69,6 @@ export default async function Home() {
           ...suggestion,
           date: suggestion.date.toISOString(),
         }))}
-        myInterests={myInterests}
       />
     </div>
   );

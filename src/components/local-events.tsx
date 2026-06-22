@@ -6,10 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { withDistance } from "@/lib/geo";
-import { matchingInterests } from "@/lib/profile";
 
 type EventItem = {
   id: string;
@@ -46,18 +43,15 @@ function formatDate(iso: string) {
 export function LocalEvents({
   events,
   suggestions,
-  myInterests,
 }: {
   events: EventItem[];
   suggestions: Suggestion[];
-  myInterests: string[];
 }) {
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [locationStatus, setLocationStatus] = useState<
     "idle" | "loading" | "granted" | "denied"
   >("idle");
-  const [filterByInterest, setFilterByInterest] = useState(myInterests.length > 0);
 
   function requestLocation() {
     if (!navigator.geolocation) {
@@ -84,25 +78,6 @@ export function LocalEvents({
     () => withDistance(suggestions, coords, radiusKm),
     [suggestions, coords, radiusKm]
   );
-
-  const suggestionsWithMatch = useMemo(
-    () =>
-      suggestionsInRadius.map(({ item, distanceKm }) => ({
-        item,
-        distanceKm,
-        matched: matchingInterests(
-          `${item.title} ${item.description} ${item.tags ?? ""}`,
-          myInterests
-        ),
-      })),
-    [suggestionsInRadius, myInterests]
-  );
-
-  const hasAnyMatch = suggestionsWithMatch.some(({ matched }) => matched.length > 0);
-  const displayedSuggestions =
-    filterByInterest && hasAnyMatch
-      ? suggestionsWithMatch.filter(({ matched }) => matched.length > 0)
-      : suggestionsWithMatch;
 
   if (locationStatus !== "granted") {
     return (
@@ -179,28 +154,16 @@ export function LocalEvents({
               chaque jour parmi les événements publics près de toi. Adopte une
               idée pour en faire une vraie rencontre Viens toucher de l&apos;herbe.
             </p>
-            {myInterests.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="filter-interests"
-                  checked={filterByInterest}
-                  onCheckedChange={setFilterByInterest}
-                />
-                <Label htmlFor="filter-interests" className="text-sm">
-                  Selon mes centres d&apos;intérêt
-                </Label>
-              </div>
-            )}
           </div>
 
-          {displayedSuggestions.length === 0 && (
+          {suggestionsInRadius.length === 0 && (
             <p className="text-center text-muted-foreground">
               Aucune idée de sortie dans ce rayon pour le moment.
             </p>
           )}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {displayedSuggestions.map(({ item: suggestion, distanceKm, matched }) => (
+            {suggestionsInRadius.map(({ item: suggestion, distanceKm }) => (
               <Card key={suggestion.id} className="flex h-full flex-col">
                 <CardHeader>
                   <div className="flex items-center justify-between gap-2">
@@ -226,15 +189,6 @@ export function LocalEvents({
                             {tag}
                           </Badge>
                         ))}
-                    </div>
-                  )}
-                  {matched.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {matched.map((tag) => (
-                        <Badge key={tag} variant="outline">
-                          ✓ {tag}
-                        </Badge>
-                      ))}
                     </div>
                   )}
                   <div className="mt-auto flex flex-wrap gap-2">

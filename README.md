@@ -163,12 +163,10 @@ d'événements à travers toute la France sans aucun filtre pertinent.
     deux sources en parallèle et les upsert dans `SuggestedEvent`
     (`src/lib/sync-suggested-events.ts`), en retirant celles qui sont passées.
   - Chaque suggestion affiche ses catégories (`tags`, ex. "Concert", "Expo",
-    "Théâtre") en badges. Si le membre a renseigné des centres d'intérêt
-    (présentation de profil), un toggle "Selon mes centres d'intérêt" (activé
-    par défaut) filtre les suggestions par correspondance de mots-clés
-    titre/description/catégories (`matchingInterests` dans `src/lib/profile.ts`).
-    Bascule sur "tout" si aucune suggestion ne correspond, pour éviter une
-    liste vide.
+    "Théâtre") en badges, juste à titre informatif — pas de filtrage par
+    centre d'intérêt : les centres d'intérêt du profil servent uniquement à
+    se présenter aux autres membres (présentation, swipe), pas à personnaliser
+    les suggestions, pour rester simple.
 
 Best-effort partout : si une adresse n'est pas géolocalisable, l'événement
 reste créé/affiché, juste sans filtre de distance.
