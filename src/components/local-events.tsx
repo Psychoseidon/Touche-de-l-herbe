@@ -34,6 +34,7 @@ type Suggestion = {
   latitude: number | null;
   longitude: number | null;
   sourceUrl: string;
+  tags?: string | null;
 };
 
 const DEFAULT_RADIUS_KM = 25;
@@ -89,7 +90,10 @@ export function LocalEvents({
       suggestionsInRadius.map(({ item, distanceKm }) => ({
         item,
         distanceKm,
-        matched: matchingInterests(`${item.title} ${item.description}`, myInterests),
+        matched: matchingInterests(
+          `${item.title} ${item.description} ${item.tags ?? ""}`,
+          myInterests
+        ),
       })),
     [suggestionsInRadius, myInterests]
   );
@@ -197,7 +201,7 @@ export function LocalEvents({
                   <div className="flex items-center justify-between gap-2">
                     <CardTitle className="text-base">{suggestion.title}</CardTitle>
                     <Badge variant="secondary">
-                      {distanceKm !== null ? `${distanceKm.toFixed(0)} km` : "via OpenAgenda"}
+                      {distanceKm !== null ? `${distanceKm.toFixed(0)} km` : "Idée de sortie"}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -207,6 +211,18 @@ export function LocalEvents({
                     <p>📍 {suggestion.location}</p>
                     <p>🗓️ {formatDate(suggestion.date)}</p>
                   </div>
+                  {suggestion.tags && (
+                    <div className="flex flex-wrap gap-1">
+                      {suggestion.tags
+                        .split(";")
+                        .filter(Boolean)
+                        .map((tag) => (
+                          <Badge key={tag} variant="secondary" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                    </div>
+                  )}
                   {matched.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {matched.map((tag) => (

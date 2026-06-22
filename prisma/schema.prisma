@@ -257,6 +257,7 @@ model SuggestedEvent {
   longitude   Float?
   date        DateTime
   sourceUrl   String
+  tags        String? // catégories séparées par ";" (ex: "Concert;Festival"), si fournies par la source
   lastSeenAt  DateTime @default(now())
   createdAt   DateTime @default(now())
 }

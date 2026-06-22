@@ -1,8 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { fetchOpenAgendaSuggestions } from "@/lib/openagenda";
+import { fetchParisOpenDataSuggestions } from "@/lib/paris-opendata";
 
 export async function syncSuggestedEvents(): Promise<number> {
-  const suggestions = await fetchOpenAgendaSuggestions();
+  const [openAgenda, parisOpenData] = await Promise.all([
+    fetchOpenAgendaSuggestions(),
+    fetchParisOpenDataSuggestions(),
+  ]);
+  const suggestions = [...openAgenda, ...parisOpenData];
   const syncedAt = new Date();
 
   for (const suggestion of suggestions) {

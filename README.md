@@ -133,25 +133,29 @@ visiteur autorisée, avec un slider de rayon (5 à 200 km) **partagé** entre le
 deux sections de la page (`src/components/local-events.tsx`) :
 
 - **Sorties autour de chez toi** : événements créés par des membres.
-- **Idées de sorties autour de toi** : événements publics suggérés depuis
-  [OpenAgenda](https://openagenda.com) (agrégateur français, open-data, API
-  gratuite — pas de scraping de sites tiers, CGU + fragilité technique).
-  Optionnel, désactivé si les variables `OPENAGENDA_*` sont absentes.
+- **Idées de sorties autour de toi** : événements publics suggérés depuis deux
+  sources, jamais du scraping de sites tiers (CGU + droit des bases de
+  données + fragilité technique à chaque refonte) :
+  - **Open Data Paris** (`src/lib/paris-opendata.ts`) : jeu de données officiel
+    de la Ville de Paris (`que-faire-a-paris-`), soit le contenu réel de
+    [quefaire.paris.fr](https://quefaire.paris.fr) (concerts, expos, ateliers,
+    festivals...) — ~2700 événements à venir, **aucune clé requise**, source
+    publique structurée. C'est la source principale, toujours active.
+  - [OpenAgenda](https://openagenda.com) (`src/lib/openagenda.ts`) : agrégateur
+    français complémentaire, optionnel (désactivé si `OPENAGENDA_*` absents).
+    Interroge **plusieurs agendas en parallèle** (`OPENAGENDA_AGENDAS`, liste
+    séparée par des virgules) pour ajouter des lieux/associations spécifiques
+    (salle de concert, instituts culturels étrangers, musique sacrée...).
   - `GET /api/cron/sync-events` (cron quotidien, `vercel.json`) récupère les
-    événements à venir de **plusieurs agendas OpenAgenda en parallèle**
-    (`OPENAGENDA_AGENDAS`, liste séparée par des virgules — `src/lib/openagenda.ts`)
-    et les upsert dans `SuggestedEvent` (`src/lib/sync-suggested-events.ts`),
-    en retirant celles qui sont passées. Interroger plusieurs agendas (office
-    de tourisme + lieux culturels + sport...) plutôt qu'un seul donne un effet
-    "que faire à `<ville>`" sans scraper personne — la variété des suggestions
-    (concerts, expos, sport, cosplay, jeux vidéo...) dépend simplement du
-    nombre et de la diversité des agendas suivis.
-  - Si le membre a renseigné des centres d'intérêt (présentation de profil),
-    un toggle "Selon mes centres d'intérêt" (activé par défaut) filtre les
-    suggestions par correspondance de mots-clés titre/description
-    (`matchingInterests` dans `src/lib/profile.ts`) — simple, pas de
-    catégories structurées côté OpenAgenda. Bascule sur "tout" si aucune
-    suggestion ne correspond, pour éviter une liste vide.
+    deux sources en parallèle et les upsert dans `SuggestedEvent`
+    (`src/lib/sync-suggested-events.ts`), en retirant celles qui sont passées.
+  - Chaque suggestion affiche ses catégories (`tags`, ex. "Concert", "Expo",
+    "Théâtre") en badges. Si le membre a renseigné des centres d'intérêt
+    (présentation de profil), un toggle "Selon mes centres d'intérêt" (activé
+    par défaut) filtre les suggestions par correspondance de mots-clés
+    titre/description/catégories (`matchingInterests` dans `src/lib/profile.ts`).
+    Bascule sur "tout" si aucune suggestion ne correspond, pour éviter une
+    liste vide.
 
 Best-effort partout : si une adresse n'est pas géolocalisable, l'événement
 reste créé/affiché, juste sans filtre de distance.

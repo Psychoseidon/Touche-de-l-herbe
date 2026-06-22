@@ -16,7 +16,8 @@ type OpenAgendaEvent = {
   slug: string;
   title?: OpenAgendaMultilingual;
   description?: OpenAgendaMultilingual;
-  timings?: { begin: string; end: string }[];
+  nextTiming?: { begin: string; end: string };
+  firstTiming?: { begin: string; end: string };
   location?: {
     name?: string;
     address?: string;
@@ -35,6 +36,7 @@ export type NormalizedSuggestedEvent = {
   longitude: number | null;
   date: Date;
   sourceUrl: string;
+  tags?: string | null;
 };
 
 type AgendaConfig = { uid: string; slug?: string };
@@ -76,11 +78,12 @@ async function fetchAgendaEvents(
   const events: OpenAgendaEvent[] = Array.isArray(data?.events) ? data.events : [];
 
   return events
-    .filter((event) => event.timings?.[0]?.begin)
+    .filter((event) => event.nextTiming?.begin || event.firstTiming?.begin)
     .map((event) => {
       const place = [event.location?.name, event.location?.address]
         .filter(Boolean)
         .join(" — ");
+      const begin = (event.nextTiming ?? event.firstTiming)!.begin;
 
       return {
         externalId: `openagenda:${event.uid}`,
@@ -90,7 +93,7 @@ async function fetchAgendaEvents(
         location: place || "Lieu à confirmer",
         latitude: event.location?.latitude ?? null,
         longitude: event.location?.longitude ?? null,
-        date: new Date(event.timings![0]!.begin),
+        date: new Date(begin),
         sourceUrl: agenda.slug
           ? `https://openagenda.com/${agenda.slug}/events/${event.slug}`
           : `https://openagenda.com/events/${event.slug}`,
