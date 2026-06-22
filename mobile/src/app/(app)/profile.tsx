@@ -20,7 +20,7 @@ export default function ProfileScreen() {
         onPress={() => router.push('/(app)/profile-complete')}
       />
       <Button label="Mon blog" variant="outline" onPress={() => router.push('/(app)/profile-blog')} />
-      <Button label="Soutenir Touche de l'herbe" variant="outline" onPress={() => router.push('/(app)/donate')} />
+      <Button label="Soutenir Viens toucher de l'herbe" variant="outline" onPress={() => router.push('/(app)/donate')} />
       <Button label="Se déconnecter" variant="outline" onPress={logout} style={styles.logout} />
     </ThemedView>
   );

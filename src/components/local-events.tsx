@@ -168,7 +168,7 @@ export function LocalEvents({
             <p className="max-w-xl text-sm text-muted-foreground">
               Concerts, expositions, compétitions, sport, cosplay... sélectionnées
               chaque jour parmi les événements publics près de toi. Adopte une
-              idée pour en faire une vraie rencontre Touche de l&apos;herbe.
+              idée pour en faire une vraie rencontre Viens toucher de l&apos;herbe.
             </p>
             {myInterests.length > 0 && (
               <div className="flex items-center gap-2">

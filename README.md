@@ -1,4 +1,4 @@
-# Touche de l'herbe
+# Viens toucher de l'herbe
 
 Application de rencontres IRL équitable & sans biais — rencontres réelles basées
 sur des événements de groupe et une découverte par swipe, sans ELO ni premium.
@@ -7,10 +7,12 @@ Cahier des charges initial (sous le nom de travail "MEETUP") complet dans
 
 ## Stack
 
-Next.js 16 (App Router) + TypeScript, Prisma + SQLite (dev), Tailwind + shadcn/ui
-(Base UI primitives), NextAuth.js v5 (Credentials), Pusher (chat temps réel,
-fallback polling), Stripe (dons), Uploadthing (prévu, non câblé — photo en URL
-pour le MVP).
+Next.js 16 (App Router) + TypeScript, Prisma + PostgreSQL (Neon), Tailwind +
+shadcn/ui (Base UI primitives), NextAuth.js v5 (Credentials), Pusher (chat
+temps réel, fallback polling), Stripe (dons), Vercel Blob (upload de photos).
+
+Déployé sur Vercel (projet `tbird68/rencontre`), auto-déploiement à chaque
+push sur `main` via l'intégration GitHub.
 
 ## Démarrer
 
@@ -32,10 +34,13 @@ n'est pas configurée :
   toutes les 4s au lieu du temps réel.
 - **Stripe** (`STRIPE_*`) absent → `/donate` renvoie une erreur explicite au
   lieu d'ouvrir un checkout.
-- **Uploadthing** (`UPLOADTHING_TOKEN`) non câblé dans le MVP — le formulaire
-  d'inscription demande une URL de photo directement.
 - **Stripe** absent → la vérification carte anti-fraude (`/auth/verify-card`)
   est sautée et le compte est marqué vérifié directement (voir ci-dessous).
+
+`BLOB_READ_WRITE_TOKEN` (Vercel Blob) n'est volontairement pas dans cette
+liste "dégrade proprement" : c'est requis dès l'inscription (photo de profil
+obligatoire). Provisionné via `vercel blob create-store <name> --access
+public --yes`, qui remplit la variable automatiquement.
 
 ## Anti-multicompte / anti-mineur (gratuit, sans vérif ID)
 
@@ -94,6 +99,20 @@ Le swipe n'a de sens que si les profils sont renseignés : `/discover` exige
 que l'utilisateur ait complété sa présentation (`/profile/complete` — bio,
 1 à 4 photos, centres d'intérêt, ce qu'il recherche) et ne montre que des
 candidats l'ayant fait aussi (`User.profileCompletedAt`).
+
+## Upload de photos (drag-and-drop)
+
+`src/components/photo-dropzone.tsx` : glisser-déposer une image ou cliquer
+pour parcourir, upload direct vers Vercel Blob (`@vercel/blob`), pas d'URL à
+copier-coller. Deux routes :
+
+- `POST /api/upload` (authentifiée) : galerie de présentation, profil.
+- `POST /api/upload/signup` (non authentifiée) : photo de profil à
+  l'inscription, avant qu'un compte n'existe donc avant toute session —
+  mêmes garde-fous (image uniquement, 8 Mo max).
+
+Web uniquement pour l'instant (le drag-and-drop n'a pas d'équivalent mobile
+naturel) ; l'app mobile garde un champ URL pour la photo.
 
 ## Le blog du profil
 

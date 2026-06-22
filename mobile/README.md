@@ -1,4 +1,4 @@
-# Touche de l'herbe — app mobile (Expo / React Native)
+# Viens toucher de l'herbe — app mobile (Expo / React Native)
 
 App native Android/iOS. Réutilise les mêmes routes API que le site web
 (`../src/app/api`) — pas de backend séparé.

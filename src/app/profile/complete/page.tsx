@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PhotoDropzone } from "@/components/photo-dropzone";
 import { toast } from "sonner";
 
 export default function CompleteProfilePage() {
@@ -123,26 +124,24 @@ function CompleteProfileForm() {
 
             <div className="space-y-2">
               <Label>Photos (en plus de ta photo de profil)</Label>
-              {photos.map((photo, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    type="url"
-                    placeholder="https://..."
-                    required
-                    value={photo}
-                    onChange={(e) => updatePhoto(index, e.target.value)}
-                  />
-                  {photos.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => removePhotoField(index)}
-                    >
-                      Retirer
-                    </Button>
-                  )}
-                </div>
-              ))}
+              <div className="flex flex-wrap gap-3">
+                {photos.map((photo, index) => (
+                  <div key={index} className="space-y-1">
+                    <PhotoDropzone value={photo} onChange={(url) => updatePhoto(index, url)} />
+                    {photos.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => removePhotoField(index)}
+                      >
+                        Retirer
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
               {photos.length < 4 && (
                 <Button type="button" variant="outline" size="sm" onClick={addPhotoField}>
                   + Ajouter une photo

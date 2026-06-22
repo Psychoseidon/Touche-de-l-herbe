@@ -39,7 +39,7 @@ export default async function Home() {
           Des rencontres réelles, pas un algorithme.
         </h1>
         <p className="max-w-xl text-lg text-muted-foreground">
-          Touche de l&apos;herbe est une application de rencontres IRL basée sur
+          Viens toucher de l&apos;herbe est une application de rencontres IRL basée sur
           des événements de groupe et une découverte par swipe. Équité
           radicale, pas d&apos;algorithme caché, pas de premium — juste de
           vraies sorties.

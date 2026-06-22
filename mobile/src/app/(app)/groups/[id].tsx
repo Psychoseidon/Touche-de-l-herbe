@@ -61,7 +61,7 @@ export default function GroupDetailScreen() {
         )}
         {daysSinceCreated >= 30 && (
           <Button
-            label="Soutenir Touche de l'herbe"
+            label="Soutenir Viens toucher de l'herbe"
             variant="outline"
             onPress={() => router.push('/(app)/donate')}
           />

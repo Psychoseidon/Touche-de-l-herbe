@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Touche de l'herbe",
-    "slug": "touche-de-lherbe",
+    "name": "Viens toucher de l'herbe",
+    "slug": "viens-toucher-de-lherbe",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "tdlherbe",
+    "scheme": "vtdlherbe",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"

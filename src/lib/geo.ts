@@ -49,7 +49,7 @@ export async function geocodeAddress(
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`;
     const res = await fetch(url, {
-      headers: { "User-Agent": "touche-de-lherbe (contact: admin@touchedelherbe.local)" },
+      headers: { "User-Agent": "viens-toucher-de-lherbe (contact: admin@vienstoucherdelherbe.local)" },
     });
     if (!res.ok) return null;
 

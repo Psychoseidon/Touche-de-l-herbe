@@ -52,7 +52,7 @@ export default function DonateScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="subtitle">Soutenir Touche de l&apos;herbe</ThemedText>
+      <ThemedText type="subtitle">Soutenir Viens toucher de l&apos;herbe</ThemedText>
       <ThemedText themeColor="textSecondary">
         Pas de premium, pas d&apos;abonnement. Si l&apos;app t&apos;a apporté quelque chose, un
         café offert ?

@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PhotoDropzone } from "@/components/photo-dropzone";
 import { toast } from "sonner";
 
 export default function SignupPage() {
@@ -36,6 +37,12 @@ export default function SignupPage() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+
+    if (!form.photo) {
+      toast.error("Ajoute une photo de profil");
+      return;
+    }
+
     setLoading(true);
 
     const res = await fetch("/api/auth/signup", {
@@ -65,7 +72,7 @@ export default function SignupPage() {
       return;
     }
 
-    toast.success("Bienvenue sur Touche de l'herbe !");
+    toast.success("Bienvenue sur Viens toucher de l'herbe !");
     router.push(data.requiresCardCheck ? "/auth/verify-card" : "/events");
   }
 
@@ -129,14 +136,11 @@ export default function SignupPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="photo">Photo de profil (URL)</Label>
-              <Input
-                id="photo"
-                type="url"
-                required
-                placeholder="https://..."
+              <Label>Photo de profil</Label>
+              <PhotoDropzone
                 value={form.photo}
-                onChange={(e) => update("photo", e.target.value)}
+                onChange={(url) => update("photo", url)}
+                endpoint="/api/upload/signup"
               />
             </div>
             <div className="space-y-2">

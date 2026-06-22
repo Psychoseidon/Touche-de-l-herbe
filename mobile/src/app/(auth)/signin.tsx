@@ -34,7 +34,7 @@ export default function SignInScreen() {
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <ThemedText type="title" style={styles.title}>
-          Touche de l&apos;herbe
+          Viens toucher de l&apos;herbe
         </ThemedText>
         <ThemedText themeColor="textSecondary">Des rencontres réelles, pas un algorithme.</ThemedText>
 

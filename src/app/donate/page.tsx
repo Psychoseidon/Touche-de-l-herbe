@@ -32,7 +32,7 @@ export default function DonatePage() {
     <div className="mx-auto max-w-md px-4 py-10">
       <Card>
         <CardHeader>
-          <CardTitle>Soutenir Touche de l&apos;herbe</CardTitle>
+          <CardTitle>Soutenir Viens toucher de l&apos;herbe</CardTitle>
           <CardDescription>
             Pas de premium, pas d&apos;abonnement. L&apos;app est gratuite et
             équitable — si elle t&apos;a apporté quelque chose, un café

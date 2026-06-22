@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Touche de l'herbe — Rencontres IRL équitables",
+  title: "Viens toucher de l'herbe — Rencontres IRL équitables",
   description:
     "Application de rencontres IRL basée sur des événements de groupe, sans algorithme de scoring.",
 };

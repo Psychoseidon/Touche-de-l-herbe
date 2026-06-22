@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       {
         price_data: {
           currency: "eur",
-          product_data: { name: "Don Touche de l'herbe" },
+          product_data: { name: "Don Viens toucher de l'herbe" },
           unit_amount: parsed.data.amount,
         },
         quantity: 1,
