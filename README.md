@@ -167,6 +167,9 @@ d'événements à travers toute la France sans aucun filtre pertinent.
     centre d'intérêt : les centres d'intérêt du profil servent uniquement à
     se présenter aux autres membres (présentation, swipe), pas à personnaliser
     les suggestions, pour rester simple.
+  - À la place, un champ de recherche texte libre (titre/description/catégories,
+    filtre client uniquement, pas de backend) permet de chercher "concert",
+    "expo", etc. à la demande.
 
 Best-effort partout : si une adresse n'est pas géolocalisable, l'événement
 reste créé/affiché, juste sans filtre de distance.

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import { withDistance } from "@/lib/geo";
 
 type EventItem = {
@@ -52,6 +53,7 @@ export function LocalEvents({
   const [locationStatus, setLocationStatus] = useState<
     "idle" | "loading" | "granted" | "denied"
   >("idle");
+  const [search, setSearch] = useState("");
 
   function requestLocation() {
     if (!navigator.geolocation) {
@@ -78,6 +80,14 @@ export function LocalEvents({
     () => withDistance(suggestions, coords, radiusKm),
     [suggestions, coords, radiusKm]
   );
+
+  const filteredSuggestions = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return suggestionsInRadius;
+    return suggestionsInRadius.filter(({ item }) =>
+      `${item.title} ${item.description} ${item.tags ?? ""}`.toLowerCase().includes(query)
+    );
+  }, [suggestionsInRadius, search]);
 
   if (locationStatus !== "granted") {
     return (
@@ -154,16 +164,24 @@ export function LocalEvents({
               chaque jour parmi les événements publics près de toi. Adopte une
               idée pour en faire une vraie rencontre Viens toucher de l&apos;herbe.
             </p>
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher (concert, expo, sport...)"
+              className="max-w-xs"
+            />
           </div>
 
-          {suggestionsInRadius.length === 0 && (
+          {filteredSuggestions.length === 0 && (
             <p className="text-center text-muted-foreground">
-              Aucune idée de sortie dans ce rayon pour le moment.
+              {search
+                ? "Aucune idée de sortie ne correspond à ta recherche."
+                : "Aucune idée de sortie dans ce rayon pour le moment."}
             </p>
           )}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {suggestionsInRadius.map(({ item: suggestion, distanceKm }) => (
+            {filteredSuggestions.map(({ item: suggestion, distanceKm }) => (
               <Card key={suggestion.id} className="flex h-full flex-col">
                 <CardHeader>
                   <div className="flex items-center justify-between gap-2">
