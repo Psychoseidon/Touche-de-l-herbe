@@ -104,29 +104,34 @@ export function LocalEvents({
       ? suggestionsWithMatch.filter(({ matched }) => matched.length > 0)
       : suggestionsWithMatch;
 
+  if (locationStatus !== "granted") {
+    return (
+      <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <p className="max-w-md text-muted-foreground">
+          {locationStatus === "denied"
+            ? "Position indisponible — autorise la localisation dans ton navigateur pour voir les sorties et idées près de toi."
+            : "Active ta position pour voir les sorties et idées de sorties près de chez toi."}
+        </p>
+        <Button variant="outline" onClick={requestLocation} disabled={locationStatus === "loading"}>
+          {locationStatus === "loading" ? "Localisation..." : "Activer ma position"}
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full space-y-12">
       <div className="flex flex-col items-center gap-3 text-center">
-        {locationStatus !== "granted" ? (
-          <Button variant="outline" onClick={requestLocation} disabled={locationStatus === "loading"}>
-            {locationStatus === "loading"
-              ? "Localisation..."
-              : locationStatus === "denied"
-                ? "Position indisponible — tout est affiché"
-                : "Activer ma position pour filtrer par distance"}
-          </Button>
-        ) : (
-          <div className="w-full max-w-sm space-y-2">
-            <p className="text-sm text-muted-foreground">Rayon : {radiusKm} km</p>
-            <Slider
-              value={[radiusKm]}
-              min={5}
-              max={200}
-              step={5}
-              onValueChange={(value) => setRadiusKm(Array.isArray(value) ? value[0] : value)}
-            />
-          </div>
-        )}
+        <div className="w-full max-w-sm space-y-2">
+          <p className="text-sm text-muted-foreground">Rayon : {radiusKm} km</p>
+          <Slider
+            value={[radiusKm]}
+            min={5}
+            max={200}
+            step={5}
+            onValueChange={(value) => setRadiusKm(Array.isArray(value) ? value[0] : value)}
+          />
+        </div>
       </div>
 
       <section className="space-y-6">

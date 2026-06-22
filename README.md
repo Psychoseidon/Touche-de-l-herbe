@@ -130,7 +130,10 @@ La page d'accueil géocode l'adresse de chaque événement à la création
 (`src/lib/geo.ts`, Nominatim/OpenStreetMap, gratuit et sans clé) puis filtre
 côté client par distance (Haversine, `withDistance`) une fois la position du
 visiteur autorisée, avec un slider de rayon (5 à 200 km) **partagé** entre les
-deux sections de la page (`src/components/local-events.tsx`) :
+deux sections de la page (`src/components/local-events.tsx`). **Les deux
+sections sont masquées tant que le visiteur n'a pas autorisé sa position** :
+sans ça, avec des suggestions désormais nationales, on afficherait un mélange
+d'événements à travers toute la France sans aucun filtre pertinent.
 
 - **Sorties autour de chez toi** : événements créés par des membres.
 - **Idées de sorties autour de toi** : événements publics suggérés depuis deux
@@ -140,12 +143,22 @@ deux sections de la page (`src/components/local-events.tsx`) :
     de la Ville de Paris (`que-faire-a-paris-`), soit le contenu réel de
     [quefaire.paris.fr](https://quefaire.paris.fr) (concerts, expos, ateliers,
     festivals...) — ~2700 événements à venir, **aucune clé requise**, source
-    publique structurée. C'est la source principale, toujours active.
+    publique structurée. Couvre uniquement Paris.
   - [OpenAgenda](https://openagenda.com) (`src/lib/openagenda.ts`) : agrégateur
     français complémentaire, optionnel (désactivé si `OPENAGENDA_*` absents).
     Interroge **plusieurs agendas en parallèle** (`OPENAGENDA_AGENDAS`, liste
-    séparée par des virgules) pour ajouter des lieux/associations spécifiques
-    (salle de concert, instituts culturels étrangers, musique sacrée...).
+    séparée par des virgules), un par métropole/lieu, pour couvrir le reste de
+    la France : Marseille (+ ses musées), Nantes, Bordeaux, Lille, Toulouse,
+    Rennes, Rouen, Dijon, Orléans, Le Mans, Strasbourg, Angers, Montpellier...
+    Trouvé en interrogeant directement l'API de recherche d'agendas
+    d'OpenAgenda et en vérifiant le nombre d'événements à venir de chaque
+    candidat — pas tiré d'une liste officielle. Certaines grandes villes
+    (Lyon, Nice, Toulon, Grenoble, Clermont-Ferrand, Nîmes, Brest, Tours,
+    Caen, Nancy, Saint-Étienne, Le Havre, Perpignan...) n'ont, à ce jour, pas
+    d'agenda OpenAgenda actif et suffisamment fourni — elles n'affichent que
+    les sorties créées par les membres. Pour les couvrir comme Paris, il
+    faudrait un adaptateur dédié par ville (si elle publie son propre portail
+    open data), à ajouter au cas par cas.
   - `GET /api/cron/sync-events` (cron quotidien, `vercel.json`) récupère les
     deux sources en parallèle et les upsert dans `SuggestedEvent`
     (`src/lib/sync-suggested-events.ts`), en retirant celles qui sont passées.
