@@ -1,0 +1,272 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Enums ---------------------------------------------------------------
+
+enum InterestType {
+  FRIENDLY
+  ROMANTIC
+  BOTH
+}
+
+enum MessageType {
+  GROUP
+  DM
+}
+
+enum ReportCategory {
+  FAKE_PROFILE
+  HARASSMENT
+  INAPPROPRIATE_BEHAVIOR
+  ILLEGAL_CONTENT
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  DISMISSED
+  ACTIONED
+}
+
+enum ParticipantStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum DonationTrigger {
+  MATCH
+  ACTIVE_GROUP
+  UNINSTALL
+  ANNIVERSARY
+  MANUAL
+}
+
+enum SwipeDirection {
+  LIKE
+  PASS
+}
+
+// --- Core models -----------------------------------------------------------
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  pseudo    String   @unique
+  email     String   @unique
+  phone     String   @unique
+  password  String
+  bio       String?
+  photo     String?
+  photos    String? // JSON: photos additionnelles de la galerie (présentation)
+  interests String? // tags séparés par des virgules
+  lookingFor InterestType?
+  profileCompletedAt DateTime? // présentation complétée -> requis pour /discover
+  birthDate DateTime?
+
+  // Vérification (6.1)
+  emailVerifiedAt DateTime?
+  phoneVerifiedAt DateTime?
+  photoVerified   Boolean   @default(false)
+  verified        Boolean   @default(false)
+
+  // Anti-multicompte : empreinte de carte bancaire (Stripe SetupIntent, 0€ débité).
+  // Une même carte physique ne peut être associée qu'à un seul compte.
+  cardFingerprint String?   @unique
+  cardVerifiedAt  DateTime?
+
+  // Fair Queue (3.4)
+  lastMeetupAt    DateTime?
+  recentMatches   Int       @default(0)
+  recentMeetups   Int       @default(0)
+  visibilityScore Float     @default(0)
+
+  // Réputation (6.2)
+  reliabilityScore Float   @default(1)
+  waitlisted       Boolean @default(false)
+  suspended        Boolean @default(false)
+  isAdmin          Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdEvents Event[]             @relation("EventCreator")
+  participants  EventParticipant[]
+  sentInterests     Interest[] @relation("sent")
+  receivedInterests Interest[] @relation("received")
+  sentSwipes        Swipe[]    @relation("swipeFrom")
+  receivedSwipes    Swipe[]    @relation("swipeTo")
+  groupMemberships  GroupMember[]
+  messages          Message[]
+  reportsMade       Report[]   @relation("reporter")
+  reportsReceived   Report[]   @relation("reported")
+  donations         Donation[]
+  posts             ProfilePost[]
+}
+
+// Le "blog" du profil (6.x) : espace d'expression libre, plusieurs billets
+// datés, par opposition à la bio courte qui reste un résumé d'une phrase.
+model ProfilePost {
+  id        String   @id @default(cuid())
+  title     String?
+  content   String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  location    String
+  latitude    Float?
+  longitude   Float?
+  date        DateTime
+  minSize     Int      @default(2)
+  maxSize     Int      @default(8)
+  radius      String   @default("local") // "local" | "national"
+  autoAccept  Boolean  @default(true)
+  intention   InterestType?
+
+  creator   User   @relation("EventCreator", fields: [creatorId], references: [id])
+  creatorId String
+
+  participants EventParticipant[]
+  group        Group?
+  reports      Report[]
+
+  createdAt DateTime @default(now())
+}
+
+model EventParticipant {
+  id      String            @id @default(cuid())
+  event   Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  status  ParticipantStatus @default(PENDING)
+  joinedAt DateTime         @default(now())
+
+  @@unique([eventId, userId])
+}
+
+model Interest {
+  id         String       @id @default(cuid())
+  fromUser   User         @relation("sent", fields: [fromUserId], references: [id], onDelete: Cascade)
+  fromUserId String
+  toUser     User         @relation("received", fields: [toUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  eventId    String
+  type       InterestType
+  createdAt  DateTime     @default(now())
+
+  @@unique([fromUserId, toUserId, eventId])
+}
+
+model Swipe {
+  id         String         @id @default(cuid())
+  fromUser   User           @relation("swipeFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  fromUserId String
+  toUser     User           @relation("swipeTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  direction  SwipeDirection
+  createdAt  DateTime       @default(now())
+
+  @@unique([fromUserId, toUserId])
+}
+
+model Group {
+  id           String   @id @default(cuid())
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId      String   @unique
+  createdAt    DateTime @default(now())
+  lastActiveAt DateTime @default(now())
+
+  members  GroupMember[]
+  messages Message[]
+}
+
+model GroupMember {
+  id      String   @id @default(cuid())
+  group   Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  joinedAt DateTime @default(now())
+
+  @@unique([groupId, userId])
+}
+
+model Message {
+  id        String      @id @default(cuid())
+  content   String
+  type      MessageType
+  createdAt DateTime    @default(now())
+
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId String
+
+  // GROUP messages
+  group   Group?  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId String?
+
+  // DM messages: conversation id = sorted pair of user ids joined with "_"
+  conversationId String?
+  recipientId    String?
+}
+
+model Report {
+  id        String         @id @default(cuid())
+  category  ReportCategory
+  status    ReportStatus   @default(PENDING)
+  details   String?
+  createdAt DateTime       @default(now())
+
+  reporter   User   @relation("reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reporterId String
+  reported   User   @relation("reported", fields: [reportedId], references: [id], onDelete: Cascade)
+  reportedId String
+
+  event   Event?  @relation(fields: [eventId], references: [id])
+  eventId String?
+}
+
+// Idées de sorties suggérées depuis des sources externes (ex. OpenAgenda),
+// synchronisées quotidiennement (5.x). Distinctes des Event créés par les
+// membres : un membre peut "adopter" une suggestion pour créer un vrai Event.
+model SuggestedEvent {
+  id          String   @id @default(cuid())
+  externalId  String   @unique
+  source      String   @default("openagenda")
+  title       String
+  description String
+  location    String
+  latitude    Float?
+  longitude   Float?
+  date        DateTime
+  sourceUrl   String
+  lastSeenAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model Donation {
+  id        String          @id @default(cuid())
+  amount    Int // cents
+  trigger   DonationTrigger
+  anonymous Boolean         @default(false)
+  createdAt DateTime        @default(now())
+
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+}
