@@ -3,8 +3,11 @@
 // la suggestion de sorties externes plutôt que du scraping de sites tiers,
 // qui pose des problèmes légaux (CGU) et casse à chaque changement de HTML.
 //
-// Limité à un seul "agenda" (= une ville/structure) pour la phase de test :
-// OPENAGENDA_AGENDA_UID identifie l'agenda OpenAgenda à suivre.
+// Interroge plusieurs agendas en parallèle (offices de tourisme, lieux,
+// associations...) pour un effet "que faire à <ville>" sans dépendre d'une
+// seule source. OPENAGENDA_AGENDAS : liste séparée par des virgules de
+// "uid" ou "uid:slug" (le slug sert juste à construire le lien "voir la
+// source", absent si non fourni).
 
 type OpenAgendaMultilingual = string | Record<string, string> | undefined;
 
@@ -34,19 +37,33 @@ export type NormalizedSuggestedEvent = {
   sourceUrl: string;
 };
 
+type AgendaConfig = { uid: string; slug?: string };
+
+function parseAgendaConfigs(): AgendaConfig[] {
+  const raw = process.env.OPENAGENDA_AGENDAS;
+  if (!raw) return [];
+
+  return raw
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      const [uid, slug] = entry.split(":").map((part) => part.trim());
+      return { uid, slug: slug || undefined };
+    });
+}
+
 function localize(value: OpenAgendaMultilingual): string {
   if (typeof value === "string") return value;
   if (value) return value.fr ?? Object.values(value)[0] ?? "";
   return "";
 }
 
-export async function fetchOpenAgendaSuggestions(): Promise<NormalizedSuggestedEvent[]> {
-  const key = process.env.OPENAGENDA_PUBLIC_KEY;
-  const agendaUid = process.env.OPENAGENDA_AGENDA_UID;
-  if (!key || !agendaUid) return [];
-
-  const agendaSlug = process.env.OPENAGENDA_AGENDA_SLUG;
-  const url = new URL(`https://api.openagenda.com/v2/agendas/${agendaUid}/events`);
+async function fetchAgendaEvents(
+  key: string,
+  agenda: AgendaConfig
+): Promise<NormalizedSuggestedEvent[]> {
+  const url = new URL(`https://api.openagenda.com/v2/agendas/${agenda.uid}/events`);
   url.searchParams.set("key", key);
   url.searchParams.set("relative[]", "upcoming");
   url.searchParams.set("size", "50");
@@ -74,9 +91,25 @@ export async function fetchOpenAgendaSuggestions(): Promise<NormalizedSuggestedE
         latitude: event.location?.latitude ?? null,
         longitude: event.location?.longitude ?? null,
         date: new Date(event.timings![0]!.begin),
-        sourceUrl: agendaSlug
-          ? `https://openagenda.com/${agendaSlug}/events/${event.slug}`
+        sourceUrl: agenda.slug
+          ? `https://openagenda.com/${agenda.slug}/events/${event.slug}`
           : `https://openagenda.com/events/${event.slug}`,
       };
     });
+}
+
+export async function fetchOpenAgendaSuggestions(): Promise<NormalizedSuggestedEvent[]> {
+  const key = process.env.OPENAGENDA_PUBLIC_KEY;
+  const agendas = parseAgendaConfigs();
+  if (!key || agendas.length === 0) return [];
+
+  const results = await Promise.all(
+    agendas.map((agenda) => fetchAgendaEvents(key, agenda))
+  );
+
+  const byId = new Map<string, NormalizedSuggestedEvent>();
+  for (const suggestion of results.flat()) {
+    byId.set(suggestion.externalId, suggestion);
+  }
+  return [...byId.values()];
 }

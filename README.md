@@ -138,15 +138,14 @@ deux sections de la page (`src/components/local-events.tsx`) :
   gratuite — pas de scraping de sites tiers, CGU + fragilité technique).
   Optionnel, désactivé si les variables `OPENAGENDA_*` sont absentes.
   - `GET /api/cron/sync-events` (cron quotidien, `vercel.json`) récupère les
-    événements à venir d'un agenda OpenAgenda donné (`src/lib/openagenda.ts`)
+    événements à venir de **plusieurs agendas OpenAgenda en parallèle**
+    (`OPENAGENDA_AGENDAS`, liste séparée par des virgules — `src/lib/openagenda.ts`)
     et les upsert dans `SuggestedEvent` (`src/lib/sync-suggested-events.ts`),
-    en retirant celles qui sont passées.
-  - Phase de test limitée à **un seul agenda/ville** (`OPENAGENDA_AGENDA_UID`),
-    pas une recherche nationale — à étendre une fois validé. La variété des
-    suggestions (concerts, expos, sport, cosplay, jeux vidéo...) dépend
-    entièrement de ce que publie l'agenda choisi ; pour couvrir plus de
-    catégories, il faudra interroger plusieurs agendas OpenAgenda en
-    parallèle (pas encore fait).
+    en retirant celles qui sont passées. Interroger plusieurs agendas (office
+    de tourisme + lieux culturels + sport...) plutôt qu'un seul donne un effet
+    "que faire à `<ville>`" sans scraper personne — la variété des suggestions
+    (concerts, expos, sport, cosplay, jeux vidéo...) dépend simplement du
+    nombre et de la diversité des agendas suivis.
   - Si le membre a renseigné des centres d'intérêt (présentation de profil),
     un toggle "Selon mes centres d'intérêt" (activé par défaut) filtre les
     suggestions par correspondance de mots-clés titre/description
